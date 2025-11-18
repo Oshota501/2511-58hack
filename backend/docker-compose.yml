@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  bot:
+    build: .
+    command: uvicorn main:app --reload
+    volumes:
+      - .:/bot
+    environment:
+      - TOKEN = ${TOKEN}
+      
