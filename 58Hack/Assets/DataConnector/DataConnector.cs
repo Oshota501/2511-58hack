@@ -5,7 +5,7 @@ using Common;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class DataConnector : MonoBehaviour, IDataReceiver
+public class DataConnector : IDataReceiver
 {
     [SerializeField] private string URI = "http://127.0.0.1:8000/pointcloud";
     [SerializeField] private string imageFileName = "sample.png"; // 送信する画像ファイル名（StreamingAssets 等に配置）
