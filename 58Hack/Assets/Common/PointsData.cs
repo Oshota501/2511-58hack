@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace Common
@@ -28,6 +28,7 @@ namespace Common
     }
     public interface IDataReceiver
     {
-        public PicturePoints GetData();
+        public System.Collections.IEnumerator GetData(Action<PicturePoints> callback) ;
+
     }
 }
