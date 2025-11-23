@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
-origins = ["https://mtakira.github.io","https://Oshota501.github.io"]
+origins = ["https://mtakira.github.io","https://Oshota501.github.io/game/FaceSpark.version.2.0"]
 
 app.add_middleware(
     CORSMiddleware,
