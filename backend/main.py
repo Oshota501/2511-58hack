@@ -9,13 +9,16 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
-origins = ["https://mtakira.github.io","https://Oshota501.github.io/game/FaceSpark.version.2.0"]
+origins = [
+    "https://mtakira.github.io",
+    "https://oshota501.github.io"  # パス部分は不要
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=False,
-    allow_methods=["*"],  # 広げてプリフライト失敗要因を除去
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
