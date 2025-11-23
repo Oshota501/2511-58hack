@@ -4,6 +4,9 @@ from fastapi import FastAPI, UploadFile, File, Response
 import mediapipe as mp
 from main_2 import router
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 origins = ["https://mtakira.github.io"]
@@ -12,17 +15,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],  # 広げてプリフライト失敗要因を除去
     allow_headers=["*"],
 )
 
 app.include_router(router)
 
-# MediaPipe 初期化
 mp_face_mesh = mp.solutions.face_mesh
 
 
-# ====== 人の顔の点群（色付き） ======
 def get_human_points_from_bytes(image_bytes: bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -43,16 +44,17 @@ def get_human_points_from_bytes(image_bytes: bytes):
 
     pts = []
     for lm in face_landmarks.landmark:
-        x = float(lm.x)  # normalized 0..1
+        x = float(lm.x)
         y = float(lm.y)
-        z = float(lm.z)  # relative depth (can be negative)
+        z = float(lm.z)
         px = int(np.clip(round(x * (width - 1)), 0, width - 1))
         py = int(np.clip(round(y * (height - 1)), 0, height - 1))
         r, g, b = image_rgb[py, px].astype(np.float32) / 255.0
         pts.append([x, y, z, r, g, b])
 
     return np.array(pts, dtype=np.float32)
-# ====== 物体（AKAZE特徴点・色付き） ======
+
+
 def get_object_points_from_bytes(image_bytes: bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     color = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -62,7 +64,6 @@ def get_object_points_from_bytes(image_bytes: bytes):
 
     gray = cv2.cvtColor(color, cv2.COLOR_BGR2GRAY)
     height, width = color.shape[:2]
-
     detector = cv2.AKAZE_create()
     keypoints = detector.detect(gray, None)
 
@@ -83,20 +84,25 @@ def get_object_points_from_bytes(image_bytes: bytes):
     return np.array(pts, dtype=np.float32)
 
 
-# ====== エンドポイント ======
 @app.post("/pointcloud")
 async def pointcloud(file: UploadFile = File(...)):
     image_bytes = await file.read()
-
-    # まず人の顔を試す
     human_pts = get_human_points_from_bytes(image_bytes)
 
     if human_pts.shape[0] > 0:
+        logging.info("face detected: %d points", human_pts.shape[0])
         return Response(content=human_pts.tobytes(), media_type="application/octet-stream")
 
-    # 顔がなければ物体特徴点を返す
     object_pts = get_object_points_from_bytes(image_bytes)
+    logging.info("object kp: %d points", object_pts.shape[0])
     return Response(content=object_pts.tobytes(), media_type="application/octet-stream")
+
+
+# 互換: 以前の名称を使っているフロントを救済
+@app.post("/pointcloud2")
+async def pointcloud2(file: UploadFile = File(...)):
+    return await pointcloud(file)
+
 
 @app.get("/")
 async def testendpoint():
