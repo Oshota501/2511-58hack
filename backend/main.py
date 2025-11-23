@@ -3,8 +3,19 @@ import numpy as np
 from fastapi import FastAPI, UploadFile, File, Response
 import mediapipe as mp
 from main_2 import router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+origins = ["https://mtakira.github.io"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 app.include_router(router)
 
 # MediaPipe 初期化
