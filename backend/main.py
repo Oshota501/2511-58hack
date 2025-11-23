@@ -2,8 +2,10 @@ import cv2
 import numpy as np
 from fastapi import FastAPI, UploadFile, File, Response
 import mediapipe as mp
+from main_2 import router
 
 app = FastAPI()
+app.include_router(router)
 
 # MediaPipe 初期化
 mp_face_mesh = mp.solutions.face_mesh
